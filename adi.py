@@ -1,8 +1,8 @@
-a = 100
-b = 20
-
-c = a+b
-if (c>110):
+b = 200
+cost=320
+if (b>=cost):
  print("can perchace111")
+elif(b>=90 and b<cost):
+ print ("can or canot")
 else:
- print ("he can buy")
+ print ("he can't buy")
