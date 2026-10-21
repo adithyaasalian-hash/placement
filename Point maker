@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Point Maker</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:linear-gradient(135deg,#08111f,#182944);
+    color:white;
+}
+
+header{
+    text-align:center;
+    padding:25px 15px;
+    background:rgba(255,255,255,.06);
+}
+
+header h1{
+    margin:0;
+    font-size:30px;
+}
+
+header p{
+    color:#9eabc0;
+}
+
+.container{
+    max-width:850px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+input,textarea{
+    width:100%;
+    padding:14px;
+    margin:8px 0 15px;
+    border-radius:10px;
+    border:1px solid #344761;
+    background:#0d192b;
+    color:white;
+    outline:none;
+}
+
+textarea{
+    min-height:130px;
+    resize:vertical;
+}
+
+button{
+    border:0;
+    padding:12px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+    margin:5px;
+}
+
+.primary{
+    background:#00d084;
+    color:#06140e;
+}
+
+.secondary{
+    background:#263957;
+    color:white;
+}
+
+.danger{
+    background:#ff5252;
+    color:white;
+}
+
+.point{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding:13px;
+    margin:10px 0;
+    background:#14233a;
+    border-radius:12px;
+    border-left:4px solid #00d084;
+}
+
+.number{
+    font-weight:bold;
+    color:#00d084;
+    min-width:25px;
+}
+
+.pointText{
+    flex:1;
+    line-height:1.5;
+    word-break:break-word;
+}
+
+.remove{
+    background:#263957;
+    color:#ff7070;
+    padding:5px 9px;
+    margin:0;
+}
+
+.controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+}
+
+#empty{
+    text-align:center;
+    color:#8190a7;
+    padding:25px;
+}
+
+@media(max-width:500px){
+    .container{
+        padding:12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>📌 Point Maker</h1>
+    <p>Turn your ideas into clean points</p>
+</header>
+
+<div class="container">
+
+<div class="card">
+
+    <h2>📝 Create Points</h2>
+
+    <input id="topic"
+           placeholder="Enter topic / title">
+
+    <textarea id="input"
+              placeholder="Write your points here...
+Example:
+Photosynthesis is the process by which plants make food.
+It requires sunlight, carbon dioxide and water.
+Oxygen is released as a by-product."></textarea>
+
+    <div class="controls">
+
+        <button class="primary" onclick="makePoints()">
+            ✨ Make Points
+        </button>
+
+        <button class="secondary" onclick="addManualPoint()">
+            ➕ Add Point
+        </button>
+
+        <button class="secondary" onclick="savePoints()">
+            💾 Save
+        </button>
+
+        <button class="secondary" onclick="loadPoints()">
+            📂 Load
+        </button>
+
+    </div>
+
+</div>
+
+
+<div class="card">
+
+    <h2 id="outputTitle">📌 My Points</h2>
+
+    <div id="points">
+        <div id="empty">
+            Your points will appear here.
+        </div>
+    </div>
+
+    <div class="controls">
+
+        <button class="primary" onclick="copyPoints()">
+            📋 Copy
+        </button>
+
+        <button class="secondary" onclick="downloadPoints()">
+            ⬇️ Download
+        </button>
+
+        <button class="danger" onclick="clearPoints()">
+            🗑️ Clear
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+let points=[];
+
+
+/* MAKE POINTS */
+
+function makePoints(){
+
+    let text=document.getElementById("input").value.trim();
+
+    if(!text){
+        alert("Write something first!");
+        return;
+    }
+
+    points=[];
+
+    /*
+       Split sentences and lines into
+       separate points.
+    */
+
+    let parts=text
+        .split(/\n|(?<=[.!?])\s+/)
+        .map(x=>x.trim())
+        .filter(x=>x.length>0);
+
+    points=parts;
+
+    displayPoints();
+}
+
+
+/* MANUAL POINT */
+
+function addManualPoint(){
+
+    let text=prompt("Enter your point:");
+
+    if(text && text.trim()){
+        points.push(text.trim());
+        displayPoints();
+    }
+}
+
+
+/* DISPLAY */
+
+function displayPoints(){
+
+    let container=document.getElementById("points");
+
+    container.innerHTML="";
+
+    if(points.length===0){
+
+        container.innerHTML=
+        `<div id="empty">
+            Your points will appear here.
+        </div>`;
+
+        return;
+    }
+
+    points.forEach((point,index)=>{
+
+        let div=document.createElement("div");
+
+        div.className="point";
+
+        div.innerHTML=`
+            <div class="number">${index+1}.</div>
+
+            <div class="pointText">
+                ${escapeHTML(point)}
+            </div>
+
+            <button class="remove"
+                    onclick="removePoint(${index})">
+                ✕
+            </button>
+        `;
+
+        container.appendChild(div);
+
+    });
+
+    let topic=document.getElementById("topic").value;
+
+    document.getElementById("outputTitle").textContent=
+        topic ? "📌 "+topic : "📌 My Points";
+}
+
+
+/* REMOVE */
+
+function removePoint(index){
+
+    points.splice(index,1);
+
+    displayPoints();
+}
+
+
+/* COPY */
+
+function copyPoints(){
+
+    if(points.length===0){
+        alert("No points to copy!");
+        return;
+    }
+
+    let text="";
+
+    points.forEach((p,i)=>{
+        text+=(i+1)+". "+p+"\n";
+    });
+
+    navigator.clipboard.writeText(text);
+
+    alert("✅ Points copied!");
+}
+
+
+/* DOWNLOAD */
+
+function downloadPoints(){
+
+    if(points.length===0){
+        alert("No points available!");
+        return;
+    }
+
+    let topic=
+        document.getElementById("topic").value ||
+        "My Points";
+
+    let text=topic+"\n\n";
+
+    points.forEach((p,i)=>{
+        text+=(i+1)+". "+p+"\n";
+    });
+
+    let blob=new Blob([text],{
+        type:"text/plain"
+    });
+
+    let url=URL.createObjectURL(blob);
+
+    let a=document.createElement("a");
+
+    a.href=url;
+    a.download=topic+".txt";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+
+/* SAVE */
+
+function savePoints(){
+
+    let data={
+        topic:document.getElementById("topic").value,
+        points:points
+    };
+
+    localStorage.setItem(
+        "pointMakerData",
+        JSON.stringify(data)
+    );
+
+    alert("💾 Points saved!");
+}
+
+
+/* LOAD */
+
+function loadPoints(){
+
+    let data=
+        localStorage.getItem("pointMakerData");
+
+    if(!data){
+        alert("No saved points found.");
+        return;
+    }
+
+    data=JSON.parse(data);
+
+    document.getElementById("topic").value=
+        data.topic || "";
+
+    points=data.points || [];
+
+    displayPoints();
+
+    alert("📂 Points loaded!");
+}
+
+
+/* CLEAR */
+
+function clearPoints(){
+
+    if(confirm("Delete all points?")){
+
+        points=[];
+
+        document.getElementById("input").value="";
+
+        displayPoints();
+    }
+}
+
+
+/* SECURITY */
+
+function escapeHTML(text){
+
+    return text
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+</script>
+
+</body>
+</html>
